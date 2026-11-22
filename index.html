@@ -179,15 +179,15 @@
 const BOOKS = [
   {
     title: "원통 안의 소녀",
-    topic: "우리와 조금 다르거나(질병, 장애, 성격 등) 소외된 친구가 학교생활을 함께 잘해나갈 수 있도록, 우리 학급이나 학교에서 해줄 수 있는 배려 방법은 무엇일까?"
+    topic: "학교에서 우리와 조금 다르거나 소외된 친구가 잘 지내기 위해 학급에서 할 수 있는 실천 방법은 무엇일까?"
   },
   {
     title: "하트의 탄생",
-    topic: "'좋아요'나 '조회수', 남들의 시선에 휘둘리지 않고, 나 자신을 지키면서 즐겁게 SNS를 이용하는 방법은 무엇일까?"
+    topic: "남들의 시선에 휘둘리지 않고 나 자신을 지키면서 즐겁게 SNS를 이용하기 위해 학급에서 할 수 있는 실천 방법은 무엇일까?"
   },
   {
     title: "푸른파 피망",
-    topic: "서로 패를 가르고 싸우거나 멀어진 친구들의 사이가 해결될 수 있도록, 우리 학급이나 학교에서 해줄 수 있는 방법은 무엇일까?"
+    topic: "서로 패를 가르고 싸우거나 멀어진 친구들의 사이를 회복하기 위해 학급에서 할 수 있는 실천 방법은 무엇일까?"
   }
 ];
 const STAGES = [
@@ -325,7 +325,23 @@ function chunks(text) {
     else { cur += p; }
   });
   if (cur.trim()) { out.push(cur.trim()); }
-  return out;
+  const res = [];
+  out.forEach(function (c) { splitLong(c).forEach(function (x) { res.push(x); }); });
+  return res;
+}
+/* 쉼표가 없어 60자를 넘는 조각은 띄어쓰기에서 한 번 더 나눕니다. '~위해', '~않고'처럼 말이 이어지는 자리를 먼저 고릅니다. */
+function splitLong(c) {
+  if (c.length <= 60) { return [c]; }
+  const mid = c.length / 2;
+  let best = -1, bestScore = Infinity;
+  for (let i = 1; i < c.length - 1; i += 1) {
+    if (c[i] !== ' ') { continue; }
+    const natural = /(위해|않고|도록|면서|거나)$/.test(c.slice(0, i));
+    const score = Math.abs(i - mid) + (natural ? 0 : 1000);
+    if (score < bestScore) { bestScore = score; best = i; }
+  }
+  if (best < 0) { return [c]; }
+  return splitLong(c.slice(0, best).trim()).concat(splitLong(c.slice(best + 1).trim()));
 }
 function estimate(text) { return Math.max(MIN_MS, text.length * MS_PER_CHAR / rate); }
 
